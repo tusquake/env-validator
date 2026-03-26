@@ -2,6 +2,9 @@
 
 A lightweight Java/Spring Boot library designed to validate required environment variables and application properties at startup. This library ensures that your application fails fast and provides clear, actionable feedback if the runtime environment is incorrectly configured.
 
+<img width="1895" height="816" alt="image" src="https://github.com/user-attachments/assets/f305f4cf-fb62-4772-be5a-6dfb9e0a5fbe" />
+
+
 ---
 
 ## Why env-validator? (vs. Native Spring)
