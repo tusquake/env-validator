@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +36,8 @@ class EnvValidatorTest {
         when(environment.getProperty("DB_URL")).thenReturn("jdbc:mysql://localhost:3306/db");
         when(environment.getProperty("API_KEY")).thenReturn("secret-key");
 
-        assertDoesNotThrow(() -> validationEngine.validate(new TestConfig()));
+        List<String> errors = validationEngine.validate(new TestConfig());
+        assertTrue(errors.isEmpty());
     }
 
     @Test
@@ -42,11 +45,11 @@ class EnvValidatorTest {
         when(environment.getProperty("DB_URL")).thenReturn("jdbc:mysql://localhost:3306/db");
         when(environment.getProperty("API_KEY")).thenReturn(null);
 
-        MissingEnvException exception = assertThrows(MissingEnvException.class, 
-            () -> validationEngine.validate(new TestConfig()));
+        List<String> errors = validationEngine.validate(new TestConfig());
         
-        assertTrue(exception.getMessage().contains("API_KEY"));
-        assertFalse(exception.getMessage().contains("DB_URL"));
+        assertFalse(errors.isEmpty());
+        assertTrue(errors.contains("API_KEY"));
+        assertFalse(errors.contains("DB_URL"));
     }
 
     @ValidateEnv(value = "EMAIL", pattern = "^[A-Za-z0-9+_.-]+@(.+)$")
@@ -57,10 +60,10 @@ class EnvValidatorTest {
     void shouldFailWhenRegexMismatch() {
         when(environment.getProperty("EMAIL")).thenReturn("invalid-email");
 
-        MissingEnvException exception = assertThrows(MissingEnvException.class, 
-            () -> validationEngine.validate(new RegexConfig()));
+        List<String> errors = validationEngine.validate(new RegexConfig());
         
-        assertTrue(exception.getMessage().contains("EMAIL (Regex Mismatch)"));
+        assertFalse(errors.isEmpty());
+        assertTrue(errors.contains("EMAIL (Regex Mismatch)"));
     }
 
     static class FieldLevelConfig {
@@ -76,10 +79,27 @@ class EnvValidatorTest {
         when(environment.getProperty("host")).thenReturn(null);
         when(environment.getProperty("port")).thenReturn(null);
 
-        MissingEnvException exception = assertThrows(MissingEnvException.class, 
-            () -> validationEngine.validate(new FieldLevelConfig()));
+        List<String> errors = validationEngine.validate(new FieldLevelConfig());
         
-        assertTrue(exception.getMessage().contains("port"));
-        assertFalse(exception.getMessage().contains("host")); // host has default value
+        assertFalse(errors.isEmpty());
+        assertTrue(errors.contains("port"));
+        assertFalse(errors.contains("host")); // host has default value
+    }
+
+    @ValidateEnv(value = "PORT", pattern = "^[0-9]+$")
+    @ValidateEnv(value = "PORT", defaultValue = "8080")
+    static class RepeatableConfig {
+    }
+
+    @Test
+    void shouldHandleRepeatableAnnotations() {
+        // Mock situation where PORT is invalid (not numeric)
+        when(environment.getProperty("PORT")).thenReturn("abc");
+
+        List<String> errors = validationEngine.validate(new RepeatableConfig());
+        
+        // One error from the first annotation (regex)
+        assertEquals(1, errors.size());
+        assertTrue(errors.contains("PORT (Regex Mismatch)"));
     }
 }

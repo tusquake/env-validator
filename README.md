@@ -46,9 +46,9 @@ Add the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.example</groupId>
+    <groupId>io.github.tusquake</groupId>
     <artifactId>env-validator</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -120,9 +120,42 @@ The library works by hooking into the Spring Application Life Cycle:
 
 ---
 
+## Deployment to Maven Central
+
+This library is published to Maven Central. Here is a summary of the deployment process used:
+
+1. **Namespace Verification**: Verified `io.github.tusquake` via a DNS-like check using a GitHub repository.
+2. **GPG Signing**: All artifacts are signed using GPG to ensure integrity.
+3. **Central Portal**: Used the modern [Sonatype Central Portal](https://central.sonatype.com/) with the `central-publishing-maven-plugin`.
+
+### Lessons Learned & Common Pitfalls
+
+While setting up this project, we encountered several challenges that can help you avoid similar mistakes:
+
+- **Namespace Restrictions**: Maven Central **does not allow** `com.example` or `org.example`. You must use a domain or GitHub account you own (e.g., `io.github.username`).
+- **GPG Home Directory**: On Windows/Git Bash, Maven may look for GPG keys in the wrong directory (often `/c/Users/user/.gnupg`). Always verify where your keys are stored using `gpg --list-secret-keys` and specify the `executable` path in your `pom.xml` if necessary.
+- **Spring Proxies & Annotations**: When using Spring `@Configuration` classes, Spring creates CGLIB proxies. Standard Java reflection (`clazz.isAnnotationPresent`) might fail on these proxies. We updated the `ValidationEngine` to unwrap these proxies and check the superclass for annotations.
+- **Nested Classes as Beans**: In Spring Boot, static nested classes (like `AppConfig` inside `DemoApplication`) are not always automatically detected as beans. Adding `@Component` ensures they are picked up by the validation runner.
+
+---
+
+## Version History
+
+- **v1.2.0 (Current)**: 
+    - Added support for **Repeatable Annotations** (use `@ValidateEnv` multiple times on one class).
+    - Refactored engine to collect **all errors globally** from all classes before failing.
+    - Added **Bean Name context** to error messages for better traceability.
+- **v1.1.0**: 
+    - Initial stable release with support for Class-level and Field-level validation.
+    - Added Regex pattern support and Default Value fallbacks.
+    - Published to Maven Central with GPG signing.
+
+---
+
 ## Testing
 The project includes a suite of JUnit 5 tests. You can run them using:
 ```bash
 mvn test
 ```
 The tests verify success scenarios, missing variable failures, regex mismatches, and field-level validation across different configuration patterns.
+

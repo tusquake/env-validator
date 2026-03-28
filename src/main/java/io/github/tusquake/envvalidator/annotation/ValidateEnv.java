@@ -1,6 +1,7 @@
 package io.github.tusquake.envvalidator.annotation;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -11,6 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD})
+@Repeatable(ValidateEnv.List.class)
 public @interface ValidateEnv {
     /**
      * Names of the environment variables or properties to validate.
@@ -31,4 +33,13 @@ public @interface ValidateEnv {
      * Whether the validation is mandatory.
      */
     boolean required() default true;
+
+    /**
+     * Container for repeatable @ValidateEnv annotations.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.TYPE, ElementType.FIELD})
+    @interface List {
+        ValidateEnv[] value();
+    }
 }

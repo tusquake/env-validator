@@ -25,8 +25,9 @@ public class ValidationEngine {
     /**
      * Validates an object based on its class-level and field-level @ValidateEnv
      * annotations.
+     * @return List of error messages, or empty list if valid.
      */
-    public void validate(Object target) {
+    public List<String> validate(Object target) {
         Class<?> clazz = target.getClass();
         
         // Handle CGLIB proxies
@@ -36,23 +37,21 @@ public class ValidationEngine {
 
         List<String> errors = new ArrayList<>();
 
-        // 1. Class-level validation
-        ValidateEnv classAnnotation = clazz.getAnnotation(ValidateEnv.class);
-        if (classAnnotation != null) {
+        // 1. Class-level validation (Repeatable)
+        ValidateEnv[] classAnnotations = clazz.getAnnotationsByType(ValidateEnv.class);
+        for (ValidateEnv classAnnotation : classAnnotations) {
             errors.addAll(performValidation(classAnnotation));
         }
 
-        // 2. Field-level validation (Phase 2 requirement)
+        // 2. Field-level validation (Repeatable)
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(ValidateEnv.class)) {
-                ValidateEnv annotation = field.getAnnotation(ValidateEnv.class);
+            ValidateEnv[] fieldAnnotations = field.getAnnotationsByType(ValidateEnv.class);
+            for (ValidateEnv annotation : fieldAnnotations) {
                 errors.addAll(performFieldValidation(field, annotation, target));
             }
         }
 
-        if (!errors.isEmpty()) {
-            throw new MissingEnvException(errors);
-        }
+        return errors;
     }
 
     private List<String> performValidation(ValidateEnv annotation) {

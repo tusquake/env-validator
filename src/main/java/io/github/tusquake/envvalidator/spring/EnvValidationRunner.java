@@ -9,7 +9,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import io.github.tusquake.envvalidator.exception.MissingEnvException;
 
 /**
  * Runner that executes environment validation immediately after application startup.
@@ -32,12 +35,31 @@ public class EnvValidationRunner implements ApplicationRunner, ApplicationContex
     public void run(ApplicationArguments args) {
         log.info("Starting environment validation...");
 
+        List<String> allErrors = new ArrayList<>();
+
         // Validate all beans annotated with @ValidateEnv at class level
+        // We use GetBeansWithAnnotation because we want both single and repeatable containers
         Map<String, Object> beansWithAnnotation = applicationContext.getBeansWithAnnotation(ValidateEnv.class);
+        // Also look for the container annotation if multiple @ValidateEnv are present
+        Map<String, Object> beansWithAnnotationList = applicationContext.getBeansWithAnnotation(ValidateEnv.List.class);
+
+        // Put them all together
+        beansWithAnnotation.putAll(beansWithAnnotationList);
         
         for (Map.Entry<String, Object> entry : beansWithAnnotation.entrySet()) {
-            log.info("Validating bean: {} of type {}", entry.getKey(), entry.getValue().getClass().getName());
-            validationEngine.validate(entry.getValue());
+            String beanName = entry.getKey();
+            Object bean = entry.getValue();
+            
+            log.info("Validating bean: {}", beanName);
+            List<String> errors = validationEngine.validate(bean);
+            
+            for (String error : errors) {
+                allErrors.add("[" + beanName + "] " + error);
+            }
+        }
+
+        if (!allErrors.isEmpty()) {
+            throw new MissingEnvException(allErrors);
         }
 
         log.info("Environment validation completed successfully.");
