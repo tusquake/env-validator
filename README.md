@@ -123,7 +123,7 @@ The library works by hooking into the Spring Application Life Cycle:
 
 ---
 
-## 🚀 Deployment to Maven Central
+## Deployment to Maven Central
 
 This library is published to Maven Central. Here is a summary of the deployment process used:
 
@@ -171,6 +171,36 @@ While setting up this project, we encountered several challenges that can help y
     - Initial stable release with support for Class-level and Field-level validation.
     - Added Regex pattern support and Default Value fallbacks.
     - Published to Maven Central with GPG signing.
+
+---
+
+## Error Reporting (Multi-Class)
+
+One of the key strengths of `env-validator` is its ability to collect errors across your entire application and present them in a single, clear report. If multiple variables are missing or invalid across different configuration classes, you'll see a consolidated error like this:
+
+```text
+io.github.tusquake.envvalidator.exception.MissingEnvException: 
+Missing required environment variables:
+- [demoApplication.AppConfig] MISSING_VAR_1
+- [demoApplication.AppConfig] MISSING_VAR_2
+- [demoApplication.ContactConfig] FEEDBACK_EMAIL (Regex Mismatch)
+- [demoApplication.FeatureConfig] apiVersion (Regex Mismatch)
+```
+
+This allows you to fix all configuration issues in one go, rather than restarting your application multiple times.
+
+---
+
+## Future Roadmap (v2.0.0)
+
+We are constantly looking to improve the library. Here are some features we're considering for the next major release:
+
+- **Type-Safe Validation**: Support for automatic type checking (e.g., Integer, Boolean, Enum).
+- **Custom Validators**: Allow users to provide their own logic for complex validation rules.
+- **Sensitive Data Masking**: Support for masking sensitive values (passwords, keys) in logs.
+- **Profile-Specific Requirements**: Mandatory variables and rules based on active Spring profiles (`dev`, `prod`, etc.).
+- **Value Comparison**: Support for cross-variable validation (e.g., `MIN_THREADS < MAX_THREADS`).
+- **Auto-Injection**: Combine `@ValidateEnv` with `@Value` for automatic injection and validation.
 
 ---
 
