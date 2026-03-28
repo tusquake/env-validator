@@ -2,6 +2,9 @@
 
 A lightweight Java/Spring Boot library designed to validate required environment variables and application properties at startup. This library ensures that your application fails fast and provides clear, actionable feedback if the runtime environment is incorrectly configured.
 
+<img width="1895" height="816" alt="image" src="https://github.com/user-attachments/assets/f305f4cf-fb62-4772-be5a-6dfb9e0a5fbe" />
+
+
 ---
 
 ## Why env-validator? (vs. Native Spring)
@@ -117,6 +120,25 @@ The library works by hooking into the Spring Application Life Cycle:
 3. **Reflection-based Inspection**: The runner identifies all beans annotated with @ValidateEnv.
 4. **Validation Execution**: The ValidationEngine resolves property values via Spring's Environment, checks them against the specified rules (existence, regex, defaults), and collects any violations.
 5. **Fail-Fast**: If any violations are found, a MissingEnvException is thrown, preventing the application from continuing in an invalid state.
+
+---
+
+## 🚀 Deployment to Maven Central
+
+This library is published to Maven Central. Here is a summary of the deployment process used:
+
+1. **Namespace Verification**: Verified `io.github.tusquake` via a DNS-like check using a GitHub repository.
+2. **GPG Signing**: All artifacts are signed using GPG to ensure integrity.
+3. **Central Portal**: Used the modern [Sonatype Central Portal](https://central.sonatype.com/) with the `central-publishing-maven-plugin`.
+
+### Lessons Learned & Common Pitfalls
+
+While setting up this project, we encountered several challenges that can help you avoid similar mistakes:
+
+- **Namespace Restrictions**: Maven Central **does not allow** `com.example` or `org.example`. You must use a domain or GitHub account you own (e.g., `io.github.username`).
+- **GPG Home Directory**: On Windows/Git Bash, Maven may look for GPG keys in the wrong directory (often `/c/Users/user/.gnupg`). Always verify where your keys are stored using `gpg --list-secret-keys` and specify the `executable` path in your `pom.xml` if necessary.
+- **Spring Proxies & Annotations**: When using Spring `@Configuration` classes, Spring creates CGLIB proxies. Standard Java reflection (`clazz.isAnnotationPresent`) might fail on these proxies. We updated the `ValidationEngine` to unwrap these proxies and check the superclass for annotations.
+- **Nested Classes as Beans**: In Spring Boot, static nested classes (like `AppConfig` inside `DemoApplication`) are not always automatically detected as beans. Adding `@Component` ensures they are picked up by the validation runner.
 
 ---
 
