@@ -34,4 +34,11 @@ public class EnvReader {
     public boolean exists(String key) {
         return environment.containsProperty(key);
     }
+
+    /**
+     * Returns the active profiles of the environment.
+     */
+    public String[] getActiveProfiles() {
+        return environment.getActiveProfiles();
+    }
 }

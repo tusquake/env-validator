@@ -5,6 +5,7 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import io.github.tusquake.envvalidator.core.CustomValidator;
 
 /**
  * Annotation to validate environment variables or application properties.
@@ -33,6 +34,32 @@ public @interface ValidateEnv {
      * Whether the validation is mandatory.
      */
     boolean required() default true;
+
+    /**
+     * Target type to validate the value against (e.g., Integer.class, Boolean.class).
+     */
+    Class<?> type() default String.class;
+
+    /**
+     * Custom validators to apply.
+     */
+    Class<? extends CustomValidator>[] validators() default {};
+
+    /**
+     * Whether to mask the value in logs and error reports for sensitivity.
+     */
+    boolean masked() default false;
+
+    /**
+     * Active profiles under which this validation is active.
+     */
+    String[] profiles() default {};
+
+    /**
+     * SpEL expression for complex validation or value comparison.
+     * Example: "${MIN_THREADS} < ${MAX_THREADS}"
+     */
+    String expression() default "";
 
     /**
      * Container for repeatable @ValidateEnv annotations.

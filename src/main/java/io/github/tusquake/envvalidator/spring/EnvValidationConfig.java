@@ -26,4 +26,9 @@ public class EnvValidationConfig {
     public EnvValidationRunner envValidationRunner(ValidationEngine validationEngine) {
         return new EnvValidationRunner(validationEngine);
     }
+
+    @Bean
+    public EnvValidationPostProcessor envValidationPostProcessor(ValidationEngine validationEngine, EnvReader envReader) {
+        return new EnvValidationPostProcessor(validationEngine, envReader);
+    }
 }
